@@ -48,7 +48,6 @@ export default function Trainings({ session }) {
   const [links, setLinks] = useState([''])
   const [existingImages, setExistingImages] = useState([])
   const [newImageFiles, setNewImageFiles] = useState([])
-  const [notify, setNotify] = useState(true)
 
   // serie
   const [isSeries, setIsSeries] = useState(false)
@@ -107,7 +106,6 @@ export default function Trainings({ session }) {
     setExercises([{ ...emptyExercise }])
     setLinks(['']); setExistingImages([]); setNewImageFiles([])
     setIsSeries(false); setSeriesCount(4)
-    setNotify(true)
   }
 
   function updateExercise(i, field, value) {
@@ -150,7 +148,6 @@ export default function Trainings({ session }) {
         links: cleanLinks(links),
         images: allImages,
         series_id: seriesId,
-        notify,
         created_by: session.user.id,
         created_by_name: authorName,
       }))
@@ -297,11 +294,6 @@ export default function Trainings({ session }) {
             existingImages={existingImages} setExistingImages={setExistingImages}
             newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
           />
-
-          <label className="check-row check-row-small">
-            <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
-            <span>Send e-mail-notifikation til trænere der har slået det til</span>
-          </label>
 
           <div className="form-actions">
             <button className="btn btn-primary" onClick={addTraining} disabled={saving}>

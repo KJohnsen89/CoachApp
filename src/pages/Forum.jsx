@@ -13,7 +13,6 @@ export default function Forum({ session }) {
 
   const [links, setLinks] = useState([''])
   const [newImageFiles, setNewImageFiles] = useState([])
-  const [notify, setNotify] = useState(true)
 
   const authorName =
     session.user.user_metadata?.display_name || session.user.email
@@ -41,10 +40,9 @@ export default function Forum({ session }) {
         author_id: session.user.id,
         images,
         links: cleanLinks(links),
-        notify,
       })
       if (error) throw new Error(error.message)
-      setTitle(''); setBody(''); setLinks(['']); setNewImageFiles([]); setNotify(true)
+      setTitle(''); setBody(''); setLinks(['']); setNewImageFiles([])
       setShowForm(false)
       load()
     } catch (e) {
@@ -80,10 +78,6 @@ export default function Forum({ session }) {
             existingImages={[]} setExistingImages={() => {}}
             newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
           />
-          <label className="check-row check-row-small">
-            <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
-            <span>Send e-mail-notifikation til trænere der har slået det til</span>
-          </label>
           <button className="btn btn-primary" onClick={addThread} disabled={saving}>
             {saving ? 'Opretter…' : 'Opret diskussion'}
           </button>

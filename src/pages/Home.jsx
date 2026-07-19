@@ -10,7 +10,6 @@ export default function Home({ session, profile }) {
 
   const [links, setLinks] = useState([''])
   const [newImageFiles, setNewImageFiles] = useState([])
-  const [notify, setNotify] = useState(true)
 
   const authorName =
     session.user.user_metadata?.display_name || session.user.email
@@ -44,10 +43,9 @@ export default function Home({ session, profile }) {
         author_id: session.user.id,
         images,
         links: cleanLinks(links),
-        notify,
       })
       if (error) throw new Error(error.message)
-      setText(''); setLinks(['']); setNewImageFiles([]); setNotify(true)
+      setText(''); setLinks(['']); setNewImageFiles([])
       load()
     } catch (e) {
       alert('Kunne ikke slå op: ' + e.message)
@@ -79,10 +77,6 @@ export default function Home({ session, profile }) {
           existingImages={[]} setExistingImages={() => {}}
           newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
         />
-        <label className="check-row check-row-small">
-          <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
-          <span>Send e-mail-notifikation til trænere der har slået det til</span>
-        </label>
         <div className="composer-actions">
           <button className="btn btn-primary" onClick={addPost} disabled={saving}>
             {saving ? 'Slår op…' : 'Slå op'}
