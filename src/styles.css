@@ -1,0 +1,434 @@
+/* ============================================
+   Trænerportalen — design tokens
+   Palet: græsgrøn bane, kridtstreger, hvid
+   ============================================ */
+:root {
+  --pitch: #1e6b3c;        /* banegrøn */
+  --pitch-dark: #14512c;
+  --pitch-light: #e8f3ec;
+  --chalk: #ffffff;
+  --ink: #1c2420;
+  --ink-soft: #5c6a62;
+  --line: #d8e2db;
+  --bg: #f5f7f5;
+  --danger: #b33a3a;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(20, 40, 28, 0.08);
+  --display: 'Archivo', system-ui, sans-serif;
+  --body: 'Public Sans', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  color: var(--ink-soft);
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+  background: var(--pitch);
+  color: var(--chalk);
+  /* kridtstreg-signaturen: dobbelt hvid linje som en banelinje */
+  border-bottom: 3px solid var(--chalk);
+  box-shadow: inset 0 -8px 0 var(--pitch);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid var(--chalk);
+  position: relative;
+  flex-shrink: 0;
+}
+.brand-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-left: 2.5px solid var(--chalk);
+  left: 50%;
+  width: 0;
+}
+
+.brand-name {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  gap: 0.25rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.nav a {
+  color: var(--chalk);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  opacity: 0.85;
+}
+.nav a:hover { opacity: 1; background: rgba(255,255,255,0.12); }
+.nav a.active {
+  opacity: 1;
+  background: rgba(255,255,255,0.18);
+}
+
+.user-area {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.user-name { font-size: 0.85rem; opacity: 0.9; }
+
+/* ---------- Layout ---------- */
+.content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.footer {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  padding: 1rem;
+}
+
+.page-title {
+  font-family: var(--display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.6rem;
+  margin: 0 0 0.15rem;
+}
+
+.page-sub {
+  color: var(--ink-soft);
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--pitch-dark);
+  margin: 1.25rem 0 0.5rem;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--chalk);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.empty {
+  background: var(--pitch-light);
+  border: 1.5px dashed var(--pitch);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--pitch-dark);
+}
+
+.muted { color: var(--ink-soft); font-size: 0.88rem; }
+.label { font-weight: 600; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  font-family: var(--body);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn:focus-visible { outline: 3px solid var(--pitch); outline-offset: 2px; }
+
+.btn-primary { background: var(--pitch); color: var(--chalk); }
+.btn-primary:hover { background: var(--pitch-dark); }
+.btn-primary:disabled { opacity: 0.6; cursor: wait; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--pitch-dark);
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover { background: var(--pitch-light); }
+
+.btn-link {
+  background: none;
+  color: var(--pitch-dark);
+  text-decoration: underline;
+  padding: 0.5rem 0;
+}
+
+.btn-small { font-size: 0.8rem; padding: 0.3rem 0.6rem; }
+.btn-full { width: 100%; }
+
+.btn-toggle {
+  background: var(--chalk);
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+}
+.btn-toggle.active {
+  background: var(--pitch);
+  color: var(--chalk);
+  border-color: var(--pitch);
+}
+.toggle-row { display: flex; gap: 0.5rem; margin: 1rem 0; }
+
+/* ---------- Forms ---------- */
+.field { display: block; margin-bottom: 0.8rem; }
+.field span {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  color: var(--ink);
+}
+
+input, textarea, select {
+  font-family: var(--body);
+  font-size: 1rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--chalk);
+  color: var(--ink);
+}
+input:focus, textarea:focus { outline: 2px solid var(--pitch); border-color: var(--pitch); }
+textarea { resize: vertical; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.form-card { border-left: 4px solid var(--pitch); }
+.form-actions { margin-top: 1rem; }
+
+/* ---------- Composer (opslag/svar) ---------- */
+.composer textarea { margin-bottom: 0.5rem; }
+.composer-actions { display: flex; justify-content: flex-end; }
+
+/* ---------- Posts & replies ---------- */
+.post-list, .reply-list, .thread-list, .training-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.post-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.post-body { margin: 0.25rem 0 0.5rem; white-space: pre-wrap; }
+
+/* ---------- Teams ---------- */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.85rem;
+}
+.team-card h3 { margin: 0; font-family: var(--display); font-stretch: 90%; }
+.team-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.chip {
+  background: var(--pitch-light);
+  color: var(--pitch-dark);
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.chip-small { font-size: 0.72rem; padding: 0.1rem 0.5rem; }
+
+/* ---------- Trainings ---------- */
+.training-card { border-left: 4px solid var(--pitch); }
+.training-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.training-when { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.training-date {
+  font-family: var(--display);
+  font-weight: 700;
+  font-stretch: 90%;
+  text-transform: capitalize;
+  font-size: 1.05rem;
+}
+.training-time { color: var(--ink-soft); font-weight: 600; }
+.training-theme { font-weight: 600; margin: 0.4rem 0 0.15rem; }
+
+.exercise-plan {
+  margin-top: 0.6rem;
+  border-top: 2px dashed var(--line); /* kridtstreg mellem plan og info */
+  padding-top: 0.6rem;
+  display: grid;
+  gap: 0.5rem;
+}
+.exercise-item { padding-left: 0.75rem; border-left: 3px solid var(--pitch-light); }
+.exercise-item-head { display: flex; align-items: center; gap: 0.5rem; }
+.exercise-item p { margin: 0.1rem 0 0; }
+
+.exercise-row {
+  display: grid;
+  grid-template-columns: 1.2fr 70px 2fr auto;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.training-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.6rem;
+}
+
+/* ---------- Forum ---------- */
+.thread-item { padding: 0; }
+.thread-link {
+  display: block;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+.thread-link h3 { margin: 0 0 0.25rem; font-family: var(--display); font-stretch: 90%; }
+.thread-link:hover h3 { color: var(--pitch-dark); }
+.thread-meta {
+  display: flex;
+  gap: 0.4rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+.thread-original { border-left: 4px solid var(--pitch); }
+.back-link {
+  display: inline-block;
+  color: var(--pitch-dark);
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 0.75rem;
+}
+.back-link:hover { text-decoration: underline; }
+
+/* ---------- Login ---------- */
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  /* banen set fra oven: grøn flade med kridt-midterlinje */
+  background:
+    linear-gradient(to right, transparent 49.7%, rgba(255,255,255,0.35) 49.7%, rgba(255,255,255,0.35) 50.3%, transparent 50.3%),
+    var(--pitch);
+}
+
+.login-card {
+  background: var(--chalk);
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-brand { margin-bottom: 0.25rem; }
+.login-brand .brand-mark { border-color: var(--pitch); }
+.login-brand .brand-mark::after { border-color: var(--pitch); }
+.login-brand .brand-name { color: var(--pitch-dark); }
+.login-sub { color: var(--ink-soft); font-size: 0.92rem; margin-top: 0.25rem; }
+
+.msg { font-size: 0.88rem; padding: 0.5rem 0.7rem; border-radius: 8px; }
+.msg-error { background: #fdeaea; color: var(--danger); }
+.msg-info { background: var(--pitch-light); color: var(--pitch-dark); }
+
+/* ---------- Mobil ---------- */
+@media (max-width: 640px) {
+  .topbar-inner { padding: 0.5rem 0.75rem; }
+  .user-name { display: none; }
+  .nav { order: 3; width: 100%; justify-content: space-between; }
+  .nav a { padding: 0.35rem 0.5rem; font-size: 0.9rem; }
+  .exercise-row { grid-template-columns: 1fr 60px; }
+  .exercise-row .ex-desc { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
