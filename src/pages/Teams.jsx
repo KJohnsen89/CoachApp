@@ -3,6 +3,16 @@ import { supabase } from '../supabaseClient'
 
 const CATEGORIES = ['A', 'B', 'C']
 const DEFAULT_POSITIONS = ['Målmand', 'Forsvar', 'Midtbane', 'Angreb']
+const SIDE_OPTIONS = [
+  { value: 'ikke_aktuelt', label: 'Ikke aktuelt' },
+  { value: 'venstre', label: 'Venstre' },
+  { value: 'midt', label: 'Midt' },
+  { value: 'hojre', label: 'Højre' },
+]
+
+function sideLabel(value) {
+  return SIDE_OPTIONS.find((o) => o.value === value)?.label || ''
+}
 
 export default function Teams({ session }) {
   const [teams, setTeams] = useState([])
@@ -22,7 +32,7 @@ export default function Teams({ session }) {
   const [pName, setPName] = useState('')
   const [pCategory, setPCategory] = useState('A')
   const [pPositions, setPPositions] = useState([])
-  const [pCustomPos, setPCustomPos] = useState('')
+  const [pSide, setPSide] = useState('ikke_aktuelt')
   const [pTeam, setPTeam] = useState('')
 
   const [dragOverTeam, setDragOverTeam] = useState(null)
@@ -39,7 +49,7 @@ export default function Teams({ session }) {
 
   useEffect(() => { load() }, [])
 
-  // Samling af alle positioner, der er i brug (faste + egne), til forslag
+  // Samling af alle positioner, der er i brug (faste + evt. ældre egne), til forslag
   const allKnownPositions = Array.from(new Set([
     ...DEFAULT_POSITIONS,
     ...players.flatMap((p) => p.positions || []),
@@ -73,7 +83,7 @@ export default function Teams({ session }) {
 
   function resetPlayerForm() {
     setEditingId(null)
-    setPName(''); setPCategory('A'); setPPositions([]); setPCustomPos(''); setPTeam('')
+    setPName(''); setPCategory('A'); setPPositions([]); setPSide('ikke_aktuelt'); setPTeam('')
   }
 
   function openNewPlayer() {
@@ -86,7 +96,7 @@ export default function Teams({ session }) {
     setPName(p.name)
     setPCategory(p.category)
     setPPositions(p.positions || [])
-    setPCustomPos('')
+    setPSide(p.side || 'ikke_aktuelt')
     setPTeam(p.team_id || '')
     setShowPlayerForm(true)
     window.scrollTo(0, 0)
@@ -98,20 +108,13 @@ export default function Teams({ session }) {
       : [...pPositions, pos])
   }
 
-  function addCustomPosition() {
-    const pos = pCustomPos.trim()
-    if (pos && !pPositions.includes(pos)) {
-      setPPositions([...pPositions, pos])
-    }
-    setPCustomPos('')
-  }
-
   async function savePlayer() {
     if (!pName.trim()) return
     const payload = {
       name: pName.trim(),
       category: pCategory,
       positions: pPositions,
+      side: pSide,
       team_id: pTeam || null,
     }
     let error
@@ -182,6 +185,9 @@ export default function Teams({ session }) {
         {(p.positions || []).map((pos) => (
           <span key={pos} className="chip chip-small chip-pos">{pos}</span>
         ))}
+        {p.side && p.side !== 'ikke_aktuelt' && (
+          <span className="chip chip-small chip-side">{sideLabel(p.side)}</span>
+        )}
         {p.movement === 'op' && <span className="chip chip-small chip-op">⬆ Oprykker</span>}
         {p.movement === 'ned' && <span className="chip chip-small chip-ned">⬇ Nedrykker</span>}
         <span className="player-actions">
@@ -297,14 +303,21 @@ export default function Teams({ session }) {
                 </button>
               ))}
             </div>
-            <div className="link-row" style={{ marginTop: '0.5rem' }}>
-              <input
-                value={pCustomPos}
-                onChange={(e) => setPCustomPos(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomPosition() } }}
-                placeholder="Egen position, f.eks. Wingback"
-              />
-              <button className="btn btn-ghost btn-small" onClick={addCustomPosition}>+ Tilføj</button>
+          </div>
+
+          <div className="field">
+            <span>Side</span>
+            <div className="position-picker">
+              {SIDE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`pos-chip ${pSide === opt.value ? 'selected' : ''}`}
+                  onClick={() => setPSide(opt.value)}
+                >
+                  {pSide === opt.value ? '✓ ' : ''}{opt.label}
+                </button>
+              ))}
             </div>
           </div>
 

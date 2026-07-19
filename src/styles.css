@@ -626,3 +626,17 @@ textarea { resize: vertical; }
 .attend-no { color: var(--danger); }
 .attend-label.attend-yes::before { content: '✓ '; }
 .attend-label.attend-no::before { content: '✕ '; }
+
+/* ============================================
+   Version 4: spiller-side, redigér træning/serie
+   ============================================ */
+
+.chip-side { background: #e6eef2; color: #2b4a5c; }
+
+.scope-choice {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.85rem;
+  margin-top: 1rem;
+}
