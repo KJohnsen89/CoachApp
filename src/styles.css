@@ -559,3 +559,70 @@ textarea { resize: vertical; }
 @media (max-width: 640px) {
   .player-actions { width: 100%; justify-content: flex-end; }
 }
+
+/* ============================================
+   Version 3: deltagelse, serier, positioner,
+   delt media (billeder+links), spiller-redigering
+   ============================================ */
+
+/* ---------- Danger-knap ---------- */
+.btn-danger { background: var(--danger); color: var(--chalk); }
+.btn-danger:hover { background: #922f2f; }
+
+/* ---------- Media-felter (delt komponent) ---------- */
+.media-fields { display: grid; gap: 0.75rem; margin: 0.5rem 0; }
+.media-fields.compact { margin: 0.25rem 0; }
+.media-block { display: grid; gap: 0.35rem; }
+.media-label {
+  font-weight: 600; font-size: 0.85rem; color: var(--ink);
+}
+.media-view { margin-top: 0.5rem; }
+
+/* ---------- Positioner (vælger) ---------- */
+.position-picker { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.25rem; }
+.pos-chip {
+  background: var(--chalk);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.pos-chip:hover { background: var(--pitch-light); }
+.pos-chip.selected {
+  background: var(--pitch);
+  color: var(--chalk);
+  border-color: var(--pitch);
+}
+
+/* ---------- Serie ---------- */
+.series-box {
+  background: var(--pitch-light);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+}
+.series-details { margin-top: 0.5rem; padding-left: 0.25rem; }
+
+/* ---------- Deltagelse ---------- */
+.attendance-box {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.85rem;
+  margin: 1rem 0;
+}
+.attendance-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.attendance-lists { display: grid; gap: 0.6rem; }
+.attend-label {
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: inline-block;
+  margin-bottom: 0.2rem;
+}
+.attend-yes { color: var(--pitch-dark); }
+.attend-no { color: var(--danger); }
+.attend-label.attend-yes::before { content: '✓ '; }
+.attend-label.attend-no::before { content: '✕ '; }

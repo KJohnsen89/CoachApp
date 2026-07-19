@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import MediaFields, { uploadImages, cleanLinks } from '../components/MediaFields'
 
 export default function Forum({ session }) {
   const [threads, setThreads] = useState([])
@@ -8,6 +9,10 @@ export default function Forum({ session }) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const [links, setLinks] = useState([''])
+  const [newImageFiles, setNewImageFiles] = useState([])
 
   const authorName =
     session.user.user_metadata?.display_name || session.user.email
@@ -25,17 +30,25 @@ export default function Forum({ session }) {
 
   async function addThread() {
     if (!title.trim()) return
-    const { error } = await supabase.from('forum_threads').insert({
-      title: title.trim(),
-      body: body.trim(),
-      author_name: authorName,
-      author_id: session.user.id,
-    })
-    if (!error) {
-      setTitle(''); setBody('')
+    setSaving(true)
+    try {
+      const images = await uploadImages(newImageFiles, session.user.id)
+      const { error } = await supabase.from('forum_threads').insert({
+        title: title.trim(),
+        body: body.trim(),
+        author_name: authorName,
+        author_id: session.user.id,
+        images,
+        links: cleanLinks(links),
+      })
+      if (error) throw new Error(error.message)
+      setTitle(''); setBody(''); setLinks(['']); setNewImageFiles([])
       setShowForm(false)
       load()
+    } catch (e) {
+      alert('Kunne ikke oprette diskussionen: ' + e.message)
     }
+    setSaving(false)
   }
 
   return (
@@ -60,7 +73,14 @@ export default function Forum({ session }) {
             <span>Beskrivelse</span>
             <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="Uddyb dit spørgsmål eller emne…" />
           </label>
-          <button className="btn btn-primary" onClick={addThread}>Opret diskussion</button>
+          <MediaFields
+            links={links} setLinks={setLinks}
+            existingImages={[]} setExistingImages={() => {}}
+            newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
+          />
+          <button className="btn btn-primary" onClick={addThread} disabled={saving}>
+            {saving ? 'Opretter…' : 'Opret diskussion'}
+          </button>
         </div>
       )}
 
@@ -81,7 +101,8 @@ export default function Forum({ session }) {
                     <span>·</span>
                     <span>{new Date(t.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}</span>
                     <span>·</span>
-                    <span>{replyCount} {replyCount === 1 ? 'svar' : 'svar'}</span>
+                    <span>{replyCount} svar</span>
+                    {t.images?.length ? <><span>·</span><span>📷 {t.images.length}</span></> : null}
                   </div>
                 </Link>
               </li>

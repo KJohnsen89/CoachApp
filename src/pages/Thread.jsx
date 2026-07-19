@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import MediaFields, { MediaView, uploadImages, cleanLinks } from '../components/MediaFields'
 
 export default function Thread({ session }) {
   const { threadId } = useParams()
@@ -8,6 +9,10 @@ export default function Thread({ session }) {
   const [replies, setReplies] = useState([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const [links, setLinks] = useState([''])
+  const [newImageFiles, setNewImageFiles] = useState([])
 
   const authorName =
     session.user.user_metadata?.display_name || session.user.email
@@ -26,17 +31,25 @@ export default function Thread({ session }) {
 
   async function addReply() {
     const body = text.trim()
-    if (!body) return
-    const { error } = await supabase.from('forum_replies').insert({
-      thread_id: threadId,
-      body,
-      author_name: authorName,
-      author_id: session.user.id,
-    })
-    if (!error) {
-      setText('')
+    if (!body && newImageFiles.length === 0) return
+    setSaving(true)
+    try {
+      const images = await uploadImages(newImageFiles, session.user.id)
+      const { error } = await supabase.from('forum_replies').insert({
+        thread_id: threadId,
+        body,
+        author_name: authorName,
+        author_id: session.user.id,
+        images,
+        links: cleanLinks(links),
+      })
+      if (error) throw new Error(error.message)
+      setText(''); setLinks(['']); setNewImageFiles([])
       load()
+    } catch (e) {
+      alert('Kunne ikke svare: ' + e.message)
     }
+    setSaving(false)
   }
 
   async function deleteReply(id) {
@@ -60,9 +73,10 @@ export default function Thread({ session }) {
           <span>{new Date(thread.created_at).toLocaleString('da-DK', { dateStyle: 'medium', timeStyle: 'short' })}</span>
         </div>
         {thread.body && <p className="post-body">{thread.body}</p>}
+        <MediaView images={thread.images} links={thread.links} />
       </div>
 
-      <h3 className="section-title">{replies.length} {replies.length === 1 ? 'svar' : 'svar'}</h3>
+      <h3 className="section-title">{replies.length} svar</h3>
 
       <ul className="reply-list">
         {replies.map((r) => (
@@ -71,7 +85,8 @@ export default function Thread({ session }) {
               <strong>{r.author_name}</strong>
               <span className="muted">{new Date(r.created_at).toLocaleString('da-DK', { dateStyle: 'medium', timeStyle: 'short' })}</span>
             </div>
-            <p className="post-body">{r.body}</p>
+            {r.body && <p className="post-body">{r.body}</p>}
+            <MediaView images={r.images} links={r.links} />
             {r.author_id === session.user.id && (
               <button className="btn btn-ghost btn-small" onClick={() => deleteReply(r.id)}>Slet</button>
             )}
@@ -86,8 +101,16 @@ export default function Thread({ session }) {
           placeholder="Skriv dit svar…"
           rows={3}
         />
+        <MediaFields
+          compact
+          links={links} setLinks={setLinks}
+          existingImages={[]} setExistingImages={() => {}}
+          newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
+        />
         <div className="composer-actions">
-          <button className="btn btn-primary" onClick={addReply}>Svar</button>
+          <button className="btn btn-primary" onClick={addReply} disabled={saving}>
+            {saving ? 'Sender…' : 'Svar'}
+          </button>
         </div>
       </div>
     </div>

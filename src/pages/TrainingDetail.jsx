@@ -1,17 +1,46 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { MediaView } from '../components/MediaFields'
 
 export default function TrainingDetail({ session }) {
   const { trainingId } = useParams()
   const [training, setTraining] = useState(null)
+  const [attendance, setAttendance] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    supabase.from('trainings').select('*').eq('id', trainingId).single()
-      .then(({ data }) => { setTraining(data); setLoading(false) })
-  }, [trainingId])
+  const myName = session.user.user_metadata?.display_name || session.user.email
+
+  async function load() {
+    const [t, a] = await Promise.all([
+      supabase.from('trainings').select('*').eq('id', trainingId).single(),
+      supabase.from('training_attendance').select('*').eq('training_id', trainingId),
+    ])
+    setTraining(t.data)
+    setAttendance(a.data || [])
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [trainingId])
+
+  async function setMyStatus(status) {
+    const mine = attendance.find((a) => a.user_id === session.user.id)
+    // Klik på samme status igen = fjern min tilmelding
+    if (mine && mine.status === status) {
+      await supabase.from('training_attendance').delete()
+        .eq('training_id', trainingId).eq('user_id', session.user.id)
+    } else {
+      await supabase.from('training_attendance').upsert({
+        training_id: trainingId,
+        user_id: session.user.id,
+        user_name: myName,
+        status,
+        updated_at: new Date().toISOString(),
+      })
+    }
+    load()
+  }
 
   async function deleteTraining() {
     if (!confirm('Slet denne træning?')) return
@@ -27,6 +56,9 @@ export default function TrainingDetail({ session }) {
   if (!training) return <div className="page"><p>Træningen findes ikke. <Link to="/traeninger">Tilbage til træninger</Link></p></div>
 
   const totalMinutes = (training.exercises || []).reduce((sum, ex) => sum + (Number(ex.minutes) || 0), 0)
+  const myStatus = attendance.find((a) => a.user_id === session.user.id)?.status
+  const coming = attendance.filter((a) => a.status === 'kommer')
+  const notComing = attendance.filter((a) => a.status === 'kommer_ikke')
 
   return (
     <div className="page">
@@ -45,6 +77,36 @@ export default function TrainingDetail({ session }) {
 
         {training.theme && <p className="training-theme">{training.theme}</p>}
         {training.place && <p className="muted">📍 {training.place}</p>}
+        {training.series_id && <p className="muted">🔁 Del af en træningsserie</p>}
+
+        {/* Deltagelse */}
+        <div className="attendance-box">
+          <h3 className="section-title">Deltager du?</h3>
+          <div className="attendance-buttons">
+            <button
+              className={`btn ${myStatus === 'kommer' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setMyStatus('kommer')}
+            >✓ Jeg deltager</button>
+            <button
+              className={`btn ${myStatus === 'kommer_ikke' ? 'btn-danger' : 'btn-ghost'}`}
+              onClick={() => setMyStatus('kommer_ikke')}
+            >✕ Jeg kommer ikke</button>
+          </div>
+          <div className="attendance-lists">
+            <div>
+              <span className="attend-label attend-yes">Kommer ({coming.length})</span>
+              {coming.length > 0
+                ? <p className="muted">{coming.map((a) => a.user_name).join(', ')}</p>
+                : <p className="muted">Ingen tilmeldt endnu.</p>}
+            </div>
+            {notComing.length > 0 && (
+              <div>
+                <span className="attend-label attend-no">Kommer ikke ({notComing.length})</span>
+                <p className="muted">{notComing.map((a) => a.user_name).join(', ')}</p>
+              </div>
+            )}
+          </div>
+        </div>
 
         {training.exercises?.length > 0 && (
           <>
@@ -65,27 +127,10 @@ export default function TrainingDetail({ session }) {
           </>
         )}
 
-        {training.links?.length > 0 && (
+        {(training.links?.length > 0 || training.images?.length > 0) && (
           <>
-            <h3 className="section-title">Links</h3>
-            <ul className="detail-links">
-              {training.links.map((l, i) => (
-                <li key={i}><a href={l} target="_blank" rel="noopener noreferrer">{l}</a></li>
-              ))}
-            </ul>
-          </>
-        )}
-
-        {training.images?.length > 0 && (
-          <>
-            <h3 className="section-title">Billeder</h3>
-            <div className="image-gallery">
-              {training.images.map((url, i) => (
-                <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                  <img src={url} alt={`Billede ${i + 1}`} />
-                </a>
-              ))}
-            </div>
+            <h3 className="section-title">Links & billeder</h3>
+            <MediaView images={training.images} links={training.links} />
           </>
         )}
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 
 const CATEGORIES = ['A', 'B', 'C']
+const DEFAULT_POSITIONS = ['Målmand', 'Forsvar', 'Midtbane', 'Angreb']
 
 export default function Teams({ session }) {
   const [teams, setTeams] = useState([])
@@ -15,11 +16,13 @@ export default function Teams({ session }) {
   const [trainers, setTrainers] = useState('')
   const [notes, setNotes] = useState('')
 
-  // spiller-formular
+  // spiller-formular (bruges til både opret og redigér)
   const [showPlayerForm, setShowPlayerForm] = useState(false)
+  const [editingId, setEditingId] = useState(null)
   const [pName, setPName] = useState('')
   const [pCategory, setPCategory] = useState('A')
-  const [pPosition, setPPosition] = useState('')
+  const [pPositions, setPPositions] = useState([])
+  const [pCustomPos, setPCustomPos] = useState('')
   const [pTeam, setPTeam] = useState('')
 
   const [dragOverTeam, setDragOverTeam] = useState(null)
@@ -35,6 +38,12 @@ export default function Teams({ session }) {
   }
 
   useEffect(() => { load() }, [])
+
+  // Samling af alle positioner, der er i brug (faste + egne), til forslag
+  const allKnownPositions = Array.from(new Set([
+    ...DEFAULT_POSITIONS,
+    ...players.flatMap((p) => p.positions || []),
+  ]))
 
   async function addTeam() {
     if (!name.trim()) return
@@ -62,25 +71,65 @@ export default function Teams({ session }) {
     load()
   }
 
-  async function addPlayer() {
+  function resetPlayerForm() {
+    setEditingId(null)
+    setPName(''); setPCategory('A'); setPPositions([]); setPCustomPos(''); setPTeam('')
+  }
+
+  function openNewPlayer() {
+    resetPlayerForm()
+    setShowPlayerForm(true)
+  }
+
+  function openEditPlayer(p) {
+    setEditingId(p.id)
+    setPName(p.name)
+    setPCategory(p.category)
+    setPPositions(p.positions || [])
+    setPCustomPos('')
+    setPTeam(p.team_id || '')
+    setShowPlayerForm(true)
+    window.scrollTo(0, 0)
+  }
+
+  function togglePosition(pos) {
+    setPPositions(pPositions.includes(pos)
+      ? pPositions.filter((x) => x !== pos)
+      : [...pPositions, pos])
+  }
+
+  function addCustomPosition() {
+    const pos = pCustomPos.trim()
+    if (pos && !pPositions.includes(pos)) {
+      setPPositions([...pPositions, pos])
+    }
+    setPCustomPos('')
+  }
+
+  async function savePlayer() {
     if (!pName.trim()) return
-    const { error } = await supabase.from('players').insert({
+    const payload = {
       name: pName.trim(),
       category: pCategory,
-      position: pPosition.trim(),
+      positions: pPositions,
       team_id: pTeam || null,
-      created_by: session.user.id,
-    })
+    }
+    let error
+    if (editingId) {
+      ;({ error } = await supabase.from('players').update(payload).eq('id', editingId))
+    } else {
+      ;({ error } = await supabase.from('players').insert({ ...payload, created_by: session.user.id }))
+    }
     if (!error) {
-      setPName(''); setPCategory('A'); setPPosition(''); setPTeam('')
+      resetPlayerForm()
+      setShowPlayerForm(false)
       load()
     } else {
-      alert('Kunne ikke oprette spilleren: ' + error.message)
+      alert('Kunne ikke gemme spilleren: ' + error.message)
     }
   }
 
   async function movePlayer(playerId, teamId) {
-    // nulstil op/ned-markering når spilleren skifter hold
     await supabase.from('players').update({ team_id: teamId || null, movement: null }).eq('id', playerId)
     load()
   }
@@ -92,7 +141,6 @@ export default function Teams({ session }) {
   }
 
   async function toggleMovement(p, type) {
-    // type: 'op' eller 'ned'
     if (p.movement === type) {
       await supabase.from('players').update({ movement: null }).eq('id', p.id)
     } else {
@@ -107,7 +155,6 @@ export default function Teams({ session }) {
     load()
   }
 
-  // Drag and drop
   function onDragStart(e, playerId) {
     e.dataTransfer.setData('text/plain', playerId)
     e.dataTransfer.effectAllowed = 'move'
@@ -132,7 +179,9 @@ export default function Teams({ session }) {
         <span className="drag-handle" aria-hidden="true">⠿</span>
         <span className="player-name">{p.name}</span>
         <span className={`chip chip-small cat-${p.category}`}>{p.category}</span>
-        {p.position && <span className="chip chip-small chip-pos">{p.position}</span>}
+        {(p.positions || []).map((pos) => (
+          <span key={pos} className="chip chip-small chip-pos">{pos}</span>
+        ))}
         {p.movement === 'op' && <span className="chip chip-small chip-op">⬆ Oprykker</span>}
         {p.movement === 'ned' && <span className="chip chip-small chip-ned">⬇ Nedrykker</span>}
         <span className="player-actions">
@@ -150,6 +199,7 @@ export default function Teams({ session }) {
               >⬇</button>
             </>
           )}
+          <button className="btn btn-icon" onClick={() => openEditPlayer(p)} title="Redigér spilleren">✎</button>
           <select
             className="move-select"
             value=""
@@ -173,10 +223,10 @@ export default function Teams({ session }) {
       <div className="page-head">
         <div>
           <h1 className="page-title">Hold & spillere</h1>
-          <p className="page-sub">Opret spillere, træk dem på hold, og markér op- og nedrykkere.</p>
+          <p className="page-sub">Opret og redigér spillere, træk dem på hold, og markér op- og nedrykkere.</p>
         </div>
         <div className="head-actions">
-          <button className="btn btn-ghost" onClick={() => setShowPlayerForm(!showPlayerForm)}>
+          <button className="btn btn-ghost" onClick={() => { if (showPlayerForm) resetPlayerForm(); setShowPlayerForm(!showPlayerForm) }}>
             {showPlayerForm ? 'Luk' : '+ Ny spiller'}
           </button>
           <button className="btn btn-primary" onClick={() => setShowTeamForm(!showTeamForm)}>
@@ -212,7 +262,7 @@ export default function Teams({ session }) {
 
       {showPlayerForm && (
         <div className="card form-card">
-          <h3 className="section-title">Ny spiller</h3>
+          <h3 className="section-title">{editingId ? 'Redigér spiller' : 'Ny spiller'}</h3>
           <div className="form-row">
             <label className="field">
               <span>Navn</span>
@@ -225,18 +275,45 @@ export default function Teams({ session }) {
               </select>
             </label>
             <label className="field">
-              <span>Position</span>
-              <input value={pPosition} onChange={(e) => setPPosition(e.target.value)} placeholder="F.eks. Angriber, Målmand" />
-            </label>
-            <label className="field">
-              <span>Hold (valgfrit)</span>
+              <span>Hold</span>
               <select value={pTeam} onChange={(e) => setPTeam(e.target.value)}>
                 <option value="">Uden hold</option>
                 {teams.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </label>
           </div>
-          <button className="btn btn-primary" onClick={addPlayer}>Gem spiller</button>
+
+          <div className="field">
+            <span>Positioner (vælg en eller flere)</span>
+            <div className="position-picker">
+              {allKnownPositions.map((pos) => (
+                <button
+                  key={pos}
+                  type="button"
+                  className={`pos-chip ${pPositions.includes(pos) ? 'selected' : ''}`}
+                  onClick={() => togglePosition(pos)}
+                >
+                  {pPositions.includes(pos) ? '✓ ' : ''}{pos}
+                </button>
+              ))}
+            </div>
+            <div className="link-row" style={{ marginTop: '0.5rem' }}>
+              <input
+                value={pCustomPos}
+                onChange={(e) => setPCustomPos(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomPosition() } }}
+                placeholder="Egen position, f.eks. Wingback"
+              />
+              <button className="btn btn-ghost btn-small" onClick={addCustomPosition}>+ Tilføj</button>
+            </div>
+          </div>
+
+          <button className="btn btn-primary" onClick={savePlayer}>
+            {editingId ? 'Gem ændringer' : 'Gem spiller'}
+          </button>
+          {editingId && (
+            <button className="btn btn-link" onClick={() => { resetPlayerForm(); setShowPlayerForm(false) }}>Annullér</button>
+          )}
         </div>
       )}
 

@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import MediaFields, { MediaView, uploadImages, cleanLinks } from '../components/MediaFields'
 
 export default function Home({ session }) {
   const [posts, setPosts] = useState([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  const [links, setLinks] = useState([''])
+  const [newImageFiles, setNewImageFiles] = useState([])
 
   const authorName =
     session.user.user_metadata?.display_name || session.user.email
@@ -23,16 +28,24 @@ export default function Home({ session }) {
 
   async function addPost() {
     const body = text.trim()
-    if (!body) return
-    const { error } = await supabase.from('posts').insert({
-      body,
-      author_name: authorName,
-      author_id: session.user.id,
-    })
-    if (!error) {
-      setText('')
+    if (!body && newImageFiles.length === 0) return
+    setSaving(true)
+    try {
+      const images = await uploadImages(newImageFiles, session.user.id)
+      const { error } = await supabase.from('posts').insert({
+        body,
+        author_name: authorName,
+        author_id: session.user.id,
+        images,
+        links: cleanLinks(links),
+      })
+      if (error) throw new Error(error.message)
+      setText(''); setLinks(['']); setNewImageFiles([])
       load()
+    } catch (e) {
+      alert('Kunne ikke slå op: ' + e.message)
     }
+    setSaving(false)
   }
 
   async function deletePost(id) {
@@ -53,8 +66,16 @@ export default function Home({ session }) {
           placeholder="Skriv et opslag til de andre trænere…"
           rows={3}
         />
+        <MediaFields
+          compact
+          links={links} setLinks={setLinks}
+          existingImages={[]} setExistingImages={() => {}}
+          newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
+        />
         <div className="composer-actions">
-          <button className="btn btn-primary" onClick={addPost}>Slå op</button>
+          <button className="btn btn-primary" onClick={addPost} disabled={saving}>
+            {saving ? 'Slår op…' : 'Slå op'}
+          </button>
         </div>
       </div>
 
@@ -70,7 +91,8 @@ export default function Home({ session }) {
                 <strong>{p.author_name}</strong>
                 <span className="muted">{new Date(p.created_at).toLocaleString('da-DK', { dateStyle: 'medium', timeStyle: 'short' })}</span>
               </div>
-              <p className="post-body">{p.body}</p>
+              {p.body && <p className="post-body">{p.body}</p>}
+              <MediaView images={p.images} links={p.links} />
               {p.author_id === session.user.id && (
                 <button className="btn btn-ghost btn-small" onClick={() => deletePost(p.id)}>Slet</button>
               )}
