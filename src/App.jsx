@@ -5,8 +5,10 @@ import Login from './pages/Login'
 import Home from './pages/Home'
 import Teams from './pages/Teams'
 import Trainings from './pages/Trainings'
+import TrainingDetail from './pages/TrainingDetail'
 import Forum from './pages/Forum'
 import Thread from './pages/Thread'
+import Settings from './pages/Settings'
 
 export default function App() {
   const [session, setSession] = useState(undefined) // undefined = loading
@@ -55,6 +57,7 @@ export default function App() {
             <NavLink to="/forum">Forum</NavLink>
           </nav>
           <div className="user-area">
+            <NavLink to="/indstillinger" className="settings-link" title="Indstillinger">⚙︎</NavLink>
             <span className="user-name">{displayName}</span>
             <button className="btn btn-ghost" onClick={logout}>Log ud</button>
           </div>
@@ -65,9 +68,11 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home session={session} />} />
           <Route path="/traeninger" element={<Trainings session={session} />} />
+          <Route path="/traeninger/:trainingId" element={<TrainingDetail session={session} />} />
           <Route path="/hold" element={<Teams session={session} />} />
           <Route path="/forum" element={<Forum session={session} />} />
           <Route path="/forum/:threadId" element={<Thread session={session} />} />
+          <Route path="/indstillinger" element={<Settings session={session} />} />
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -1,0 +1,80 @@
+import { useEffect, useState } from 'react'
+import { supabase } from '../supabaseClient'
+
+export default function Settings({ session }) {
+  const [notifyPosts, setNotifyPosts] = useState(false)
+  const [notifyTrainings, setNotifyTrainings] = useState(false)
+  const [notifyForum, setNotifyForum] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saved, setSaved] = useState(false)
+
+  const displayName =
+    session.user.user_metadata?.display_name || session.user.email
+
+  useEffect(() => {
+    supabase
+      .from('notification_settings')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setNotifyPosts(data.notify_posts)
+          setNotifyTrainings(data.notify_trainings)
+          setNotifyForum(data.notify_forum)
+        }
+        setLoading(false)
+      })
+  }, [])
+
+  async function save() {
+    setSaved(false)
+    const { error } = await supabase.from('notification_settings').upsert({
+      user_id: session.user.id,
+      email: session.user.email,
+      display_name: displayName,
+      notify_posts: notifyPosts,
+      notify_trainings: notifyTrainings,
+      notify_forum: notifyForum,
+      updated_at: new Date().toISOString(),
+    })
+    if (error) {
+      alert('Kunne ikke gemme indstillingerne: ' + error.message)
+    } else {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    }
+  }
+
+  if (loading) return <div className="page"><p className="muted">Henter indstillinger…</p></div>
+
+  return (
+    <div className="page">
+      <h1 className="page-title">Indstillinger</h1>
+      <p className="page-sub">Logget ind som {displayName} ({session.user.email})</p>
+
+      <div className="card">
+        <h3 className="section-title">E-mail-notifikationer</h3>
+        <p className="muted">Vælg hvad du vil have besked om på e-mail ({session.user.email}):</p>
+
+        <label className="check-row">
+          <input type="checkbox" checked={notifyPosts} onChange={(e) => setNotifyPosts(e.target.checked)} />
+          <span>Nye opslag</span>
+        </label>
+        <label className="check-row">
+          <input type="checkbox" checked={notifyTrainings} onChange={(e) => setNotifyTrainings(e.target.checked)} />
+          <span>Nye træninger</span>
+        </label>
+        <label className="check-row">
+          <input type="checkbox" checked={notifyForum} onChange={(e) => setNotifyForum(e.target.checked)} />
+          <span>Nye forum-diskussioner og svar</span>
+        </label>
+
+        <div className="form-actions">
+          <button className="btn btn-primary" onClick={save}>Gem indstillinger</button>
+          {saved && <span className="msg msg-info inline-msg">Gemt ✓</span>}
+        </div>
+      </div>
+    </div>
+  )
+}

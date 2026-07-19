@@ -432,3 +432,130 @@ textarea { resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* ============================================
+   Version 2: spillere, billeder, detaljer m.m.
+   ============================================ */
+
+/* ---------- Topbar: indstillinger ---------- */
+.settings-link {
+  color: var(--chalk);
+  font-size: 1.2rem;
+  text-decoration: none;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  opacity: 0.85;
+}
+.settings-link:hover { opacity: 1; background: rgba(255,255,255,0.12); }
+.settings-link.active { opacity: 1; background: rgba(255,255,255,0.18); }
+
+.head-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* ---------- Tid (24 timer) ---------- */
+.time-select { display: flex; align-items: center; gap: 0.3rem; }
+.time-select select { width: auto; min-width: 80px; }
+.time-colon { font-weight: 700; }
+
+/* ---------- Links i formular og detaljer ---------- */
+.link-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center; }
+.detail-links { padding-left: 1.2rem; margin: 0.25rem 0; }
+.detail-links a { color: var(--pitch-dark); word-break: break-all; }
+
+/* ---------- Billeder ---------- */
+.image-strip { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.image-thumb { position: relative; }
+.image-thumb img {
+  width: 90px; height: 90px; object-fit: cover;
+  border-radius: 8px; border: 1px solid var(--line);
+}
+.image-remove {
+  position: absolute; top: -6px; right: -6px;
+  background: var(--danger); color: var(--chalk);
+  border: none; border-radius: 50%;
+  width: 22px; height: 22px; cursor: pointer; font-size: 0.7rem;
+}
+.image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.6rem; }
+.image-gallery img {
+  width: 100%; height: 140px; object-fit: cover;
+  border-radius: 8px; border: 1px solid var(--line);
+}
+
+/* ---------- Klikbare træningskort & detaljeside ---------- */
+.training-card-clickable { transition: box-shadow 0.15s; }
+.training-card-clickable:hover { box-shadow: 0 3px 10px rgba(20, 40, 28, 0.15); }
+.training-link { display: block; text-decoration: none; color: inherit; }
+.training-summary { margin-top: 0.4rem; }
+.training-time-big { font-weight: 700; color: var(--pitch-dark); margin: 0.1rem 0 0; font-size: 1.1rem; }
+.training-detail { border-left: 4px solid var(--pitch); }
+.detail-foot { border-top: 2px dashed var(--line); padding-top: 0.75rem; margin-top: 1rem; }
+.detail-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* ---------- Spillere ---------- */
+.pool-card { border-left: 4px solid var(--ink-soft); }
+.team-card-wide { border-left: 4px solid var(--pitch); }
+.team-title { margin: 0; font-family: var(--display); font-stretch: 90%; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+.drag-over {
+  outline: 3px dashed var(--pitch);
+  outline-offset: -3px;
+  background: var(--pitch-light);
+}
+.drop-hint { border: 1.5px dashed var(--line); border-radius: 8px; padding: 0.6rem; text-align: center; }
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-top: 0.4rem;
+  background: var(--chalk);
+  cursor: grab;
+}
+.player-row:active { cursor: grabbing; }
+.drag-handle { color: var(--ink-soft); font-size: 0.9rem; }
+.player-name { font-weight: 600; }
+.player-actions { margin-left: auto; display: flex; gap: 0.3rem; align-items: center; }
+
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 0.2rem 0.45rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+.btn-icon:hover { background: var(--pitch-light); }
+.btn-icon.active-op { background: #e3f2e6; border-color: #2e7d32; color: #2e7d32; }
+.btn-icon.active-ned { background: #fdeaea; border-color: var(--danger); color: var(--danger); }
+
+.move-select { width: auto; font-size: 0.8rem; padding: 0.25rem 0.4rem; }
+
+.cat-A { background: #1e6b3c; color: #fff; }
+.cat-B { background: #b58900; color: #fff; }
+.cat-C { background: #5c6a62; color: #fff; }
+.chip-pos { background: #eef2ef; color: var(--ink); }
+.chip-op { background: #e3f2e6; color: #2e7d32; }
+.chip-ned { background: #fdeaea; color: var(--danger); }
+
+/* ---------- Indstillinger ---------- */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  font-weight: 500;
+}
+.check-row input[type="checkbox"] {
+  width: 20px; height: 20px;
+  accent-color: var(--pitch);
+  cursor: pointer;
+}
+.inline-msg { margin-left: 0.75rem; }
+
+@media (max-width: 640px) {
+  .player-actions { width: 100%; justify-content: flex-end; }
+}
