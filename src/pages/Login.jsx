@@ -35,7 +35,7 @@ export default function Login() {
       if (error) {
         setError('Kunne ikke oprette kontoen: ' + error.message)
       } else {
-        setInfo('Kontoen er oprettet. Hvis du ikke bliver logget ind automatisk, så tjek din e-mail for et bekræftelseslink.')
+        setInfo('Kontoen er oprettet! Du bliver logget ind nu, men skal godkendes af en administrator, før du kan se og bruge Trænerportalen.')
       }
     }
     setBusy(false)

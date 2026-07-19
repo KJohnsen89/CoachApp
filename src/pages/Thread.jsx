@@ -19,12 +19,18 @@ export default function Thread({ session }) {
 
   async function load() {
     const [t, r] = await Promise.all([
-      supabase.from('forum_threads').select('*').eq('id', threadId).single(),
+      supabase.from('forum_threads').select('*, thread_views(user_id, user_name)').eq('id', threadId).single(),
       supabase.from('forum_replies').select('*').eq('thread_id', threadId).order('created_at', { ascending: true }),
     ])
     setThread(t.data)
     setReplies(r.data || [])
     setLoading(false)
+    if (t.data) {
+      supabase.from('thread_views').upsert(
+        { thread_id: threadId, user_id: session.user.id, user_name: authorName },
+        { onConflict: 'thread_id,user_id' }
+      )
+    }
   }
 
   useEffect(() => { load() }, [threadId])
@@ -61,6 +67,8 @@ export default function Thread({ session }) {
   if (loading) return <div className="page"><p className="muted">Henter diskussion…</p></div>
   if (!thread) return <div className="page"><p>Diskussionen findes ikke. <Link to="/forum">Tilbage til forum</Link></p></div>
 
+  const viewers = (thread.thread_views || []).filter((v) => v.user_id !== thread.author_id)
+
   return (
     <div className="page">
       <Link to="/forum" className="back-link">← Tilbage til forum</Link>
@@ -74,6 +82,9 @@ export default function Thread({ session }) {
         </div>
         {thread.body && <p className="post-body">{thread.body}</p>}
         <MediaView images={thread.images} links={thread.links} />
+        {viewers.length > 0 && (
+          <p className="muted view-list">👀 Set af: {viewers.map((v) => v.user_name).join(', ')}</p>
+        )}
       </div>
 
       <h3 className="section-title">{replies.length} svar</h3>

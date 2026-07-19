@@ -640,3 +640,65 @@ textarea { resize: vertical; }
   padding: 0.85rem;
   margin-top: 1rem;
 }
+
+/* ============================================
+   Version 5: godkendelse, admin, set af, roster
+   ============================================ */
+
+/* ---------- Godkendelses-skærm ---------- */
+.approval-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background:
+    linear-gradient(to right, transparent 49.7%, rgba(255,255,255,0.35) 49.7%, rgba(255,255,255,0.35) 50.3%, transparent 50.3%),
+    var(--pitch);
+}
+.approval-card {
+  background: var(--chalk);
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+.approval-card h2 { font-family: var(--display); color: var(--pitch-dark); margin: 0.75rem 0 0.5rem; }
+.approval-card .btn { margin-top: 1rem; }
+
+/* ---------- Admin ---------- */
+.admin-list { list-style: none; padding: 0; margin: 0 0 1rem; }
+.admin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.admin-row p { margin: 0.15rem 0 0; }
+.admin-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.admin-note { border-left: 4px solid var(--ink-soft); }
+
+/* ---------- "Set af" ---------- */
+.view-list { margin-top: 0.4rem; font-size: 0.8rem; }
+
+/* ---------- Spiller-oversigt (roster) ---------- */
+.roster-controls { display: flex; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.roster-search { flex: 1; min-width: 180px; }
+.roster-controls select { width: auto; }
+.roster-table-wrap { overflow-x: auto; border-radius: var(--radius); box-shadow: var(--shadow); }
+.roster-table { width: 100%; border-collapse: collapse; background: var(--chalk); }
+.roster-table th, .roster-table td { padding: 0.6rem 0.85rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.roster-table th {
+  background: var(--pitch-light);
+  color: var(--pitch-dark);
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.roster-table tbody tr:hover { background: var(--bg); }
+.roster-table tbody tr:last-child td { border-bottom: none; }

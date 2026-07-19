@@ -17,11 +17,16 @@ export default function Home({ session }) {
   async function load() {
     const { data } = await supabase
       .from('posts')
-      .select('*')
+      .select('*, post_views(user_id, user_name)')
       .order('created_at', { ascending: false })
       .limit(30)
     setPosts(data || [])
     setLoading(false)
+    // Markér de viste opslag som set af mig (i baggrunden)
+    if (data && data.length > 0) {
+      const rows = data.map((p) => ({ post_id: p.id, user_id: session.user.id, user_name: authorName }))
+      supabase.from('post_views').upsert(rows, { onConflict: 'post_id,user_id' })
+    }
   }
 
   useEffect(() => { load() }, [])
@@ -85,19 +90,25 @@ export default function Home({ session }) {
         <div className="empty">Ingen opslag endnu. Skriv det første ovenfor.</div>
       ) : (
         <ul className="post-list">
-          {posts.map((p) => (
-            <li key={p.id} className="card post">
-              <div className="post-head">
-                <strong>{p.author_name}</strong>
-                <span className="muted">{new Date(p.created_at).toLocaleString('da-DK', { dateStyle: 'medium', timeStyle: 'short' })}</span>
-              </div>
-              {p.body && <p className="post-body">{p.body}</p>}
-              <MediaView images={p.images} links={p.links} />
-              {p.author_id === session.user.id && (
-                <button className="btn btn-ghost btn-small" onClick={() => deletePost(p.id)}>Slet</button>
-              )}
-            </li>
-          ))}
+          {posts.map((p) => {
+            const viewers = (p.post_views || []).filter((v) => v.user_id !== p.author_id)
+            return (
+              <li key={p.id} className="card post">
+                <div className="post-head">
+                  <strong>{p.author_name}</strong>
+                  <span className="muted">{new Date(p.created_at).toLocaleString('da-DK', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                </div>
+                {p.body && <p className="post-body">{p.body}</p>}
+                <MediaView images={p.images} links={p.links} />
+                {viewers.length > 0 && (
+                  <p className="muted view-list">👀 Set af: {viewers.map((v) => v.user_name).join(', ')}</p>
+                )}
+                {p.author_id === session.user.id && (
+                  <button className="btn btn-ghost btn-small" onClick={() => deletePost(p.id)}>Slet</button>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
