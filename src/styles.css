@@ -702,3 +702,39 @@ textarea { resize: vertical; }
 }
 .roster-table tbody tr:hover { background: var(--bg); }
 .roster-table tbody tr:last-child td { border-bottom: none; }
+
+/* ============================================
+   Version 6: referater, regler, admin-slet, notify
+   ============================================ */
+
+.check-row-small { font-size: 0.85rem; margin: 0.5rem 0; }
+.check-row-small input { width: 18px; height: 18px; }
+
+/* ---------- Referater ---------- */
+.referat-list { list-style: none; padding: 0; margin: 0; }
+.referat-item { padding: 0; }
+.referat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 1rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.referat-header h3 { margin: 0 0 0.15rem; font-family: var(--display); font-stretch: 90%; color: var(--ink); }
+.referat-toggle { color: var(--pitch-dark); font-weight: 700; flex-shrink: 0; }
+.referat-body { padding: 0 1rem 1rem; border-top: 1px solid var(--line); }
+.referat-body .post-body { margin-top: 0.75rem; }
+
+/* ---------- Regler & filosofi ---------- */
+.rules-filter { flex-wrap: wrap; }
+.rule-list { list-style: none; padding: 0; margin: 0; }
+.rule-item { border-left: 4px solid var(--pitch); }
+.rule-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem; }
+.rule-head h3 { margin: 0; font-family: var(--display); font-stretch: 90%; }
+.rule-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }

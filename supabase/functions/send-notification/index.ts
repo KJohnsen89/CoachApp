@@ -18,6 +18,10 @@ Deno.serve(async (req) => {
     const table: string = payload.table;
     const record = payload.record;
 
+    if (record.notify === false) {
+      return new Response("Notifikation fravalgt for dette indlæg", { status: 200 });
+    }
+
     let flagColumn = "";
     let subject = "";
     let body = "";

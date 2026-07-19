@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import MediaFields, { MediaView, uploadImages, cleanLinks } from '../components/MediaFields'
 
-export default function Thread({ session }) {
+export default function Thread({ session, profile }) {
   const { threadId } = useParams()
   const [thread, setThread] = useState(null)
   const [replies, setReplies] = useState([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const navigate = useNavigate()
 
   const [links, setLinks] = useState([''])
   const [newImageFiles, setNewImageFiles] = useState([])
@@ -64,10 +65,17 @@ export default function Thread({ session }) {
     load()
   }
 
+  async function deleteThread() {
+    if (!confirm('Slet hele diskussionen inklusive alle svar?')) return
+    await supabase.from('forum_threads').delete().eq('id', threadId)
+    navigate('/forum')
+  }
+
   if (loading) return <div className="page"><p className="muted">Henter diskussion…</p></div>
   if (!thread) return <div className="page"><p>Diskussionen findes ikke. <Link to="/forum">Tilbage til forum</Link></p></div>
 
   const viewers = (thread.thread_views || []).filter((v) => v.user_id !== thread.author_id)
+  const canDeleteThread = thread.author_id === session.user.id || profile?.is_admin
 
   return (
     <div className="page">
@@ -85,6 +93,9 @@ export default function Thread({ session }) {
         {viewers.length > 0 && (
           <p className="muted view-list">👀 Set af: {viewers.map((v) => v.user_name).join(', ')}</p>
         )}
+        {canDeleteThread && (
+          <button className="btn btn-ghost btn-small" onClick={deleteThread}>Slet diskussion</button>
+        )}
       </div>
 
       <h3 className="section-title">{replies.length} svar</h3>
@@ -98,7 +109,7 @@ export default function Thread({ session }) {
             </div>
             {r.body && <p className="post-body">{r.body}</p>}
             <MediaView images={r.images} links={r.links} />
-            {r.author_id === session.user.id && (
+            {(r.author_id === session.user.id || profile?.is_admin) && (
               <button className="btn btn-ghost btn-small" onClick={() => deleteReply(r.id)}>Slet</button>
             )}
           </li>

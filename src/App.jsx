@@ -9,6 +9,8 @@ import Trainings from './pages/Trainings'
 import TrainingDetail from './pages/TrainingDetail'
 import Forum from './pages/Forum'
 import Thread from './pages/Thread'
+import Referater from './pages/Referater'
+import Rules from './pages/Rules'
 import Settings from './pages/Settings'
 import Admin from './pages/Admin'
 
@@ -97,6 +99,8 @@ export default function App() {
             <NavLink to="/hold">Hold</NavLink>
             <NavLink to="/spillere">Spillere</NavLink>
             <NavLink to="/forum">Forum</NavLink>
+            <NavLink to="/referater">Referater</NavLink>
+            <NavLink to="/regler">Regler</NavLink>
             {profile.is_admin && <NavLink to="/admin">Admin</NavLink>}
           </nav>
           <div className="user-area">
@@ -109,13 +113,15 @@ export default function App() {
 
       <main className="content">
         <Routes>
-          <Route path="/" element={<Home session={session} />} />
+          <Route path="/" element={<Home session={session} profile={profile} />} />
           <Route path="/traeninger" element={<Trainings session={session} />} />
-          <Route path="/traeninger/:trainingId" element={<TrainingDetail session={session} />} />
+          <Route path="/traeninger/:trainingId" element={<TrainingDetail session={session} profile={profile} />} />
           <Route path="/hold" element={<Teams session={session} />} />
           <Route path="/spillere" element={<AllPlayers />} />
           <Route path="/forum" element={<Forum session={session} />} />
-          <Route path="/forum/:threadId" element={<Thread session={session} />} />
+          <Route path="/forum/:threadId" element={<Thread session={session} profile={profile} />} />
+          <Route path="/referater" element={<Referater session={session} profile={profile} />} />
+          <Route path="/regler" element={<Rules session={session} profile={profile} />} />
           <Route path="/indstillinger" element={<Settings session={session} />} />
           {profile.is_admin && <Route path="/admin" element={<Admin session={session} />} />}
           <Route path="/login" element={<Navigate to="/" replace />} />

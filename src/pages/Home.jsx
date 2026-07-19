@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import MediaFields, { MediaView, uploadImages, cleanLinks } from '../components/MediaFields'
 
-export default function Home({ session }) {
+export default function Home({ session, profile }) {
   const [posts, setPosts] = useState([])
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
@@ -10,6 +10,7 @@ export default function Home({ session }) {
 
   const [links, setLinks] = useState([''])
   const [newImageFiles, setNewImageFiles] = useState([])
+  const [notify, setNotify] = useState(true)
 
   const authorName =
     session.user.user_metadata?.display_name || session.user.email
@@ -43,9 +44,10 @@ export default function Home({ session }) {
         author_id: session.user.id,
         images,
         links: cleanLinks(links),
+        notify,
       })
       if (error) throw new Error(error.message)
-      setText(''); setLinks(['']); setNewImageFiles([])
+      setText(''); setLinks(['']); setNewImageFiles([]); setNotify(true)
       load()
     } catch (e) {
       alert('Kunne ikke slå op: ' + e.message)
@@ -77,6 +79,10 @@ export default function Home({ session }) {
           existingImages={[]} setExistingImages={() => {}}
           newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
         />
+        <label className="check-row check-row-small">
+          <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} />
+          <span>Send e-mail-notifikation til trænere der har slået det til</span>
+        </label>
         <div className="composer-actions">
           <button className="btn btn-primary" onClick={addPost} disabled={saving}>
             {saving ? 'Slår op…' : 'Slå op'}
@@ -103,7 +109,7 @@ export default function Home({ session }) {
                 {viewers.length > 0 && (
                   <p className="muted view-list">👀 Set af: {viewers.map((v) => v.user_name).join(', ')}</p>
                 )}
-                {p.author_id === session.user.id && (
+                {(p.author_id === session.user.id || profile?.is_admin) && (
                   <button className="btn btn-ghost btn-small" onClick={() => deletePost(p.id)}>Slet</button>
                 )}
               </li>

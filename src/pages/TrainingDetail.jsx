@@ -7,7 +7,7 @@ const emptyExercise = { name: '', minutes: '', description: '' }
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
 
-export default function TrainingDetail({ session }) {
+export default function TrainingDetail({ session, profile }) {
   const { trainingId } = useParams()
   const [training, setTraining] = useState(null)
   const [attendance, setAttendance] = useState([])
@@ -154,6 +154,7 @@ export default function TrainingDetail({ session }) {
   const coming = attendance.filter((a) => a.status === 'kommer')
   const notComing = attendance.filter((a) => a.status === 'kommer_ikke')
   const canEdit = training.created_by === session.user.id
+  const canDelete = training.created_by === session.user.id || profile?.is_admin
 
   return (
     <div className="page">
@@ -307,10 +308,10 @@ export default function TrainingDetail({ session }) {
             <div className="detail-actions">
               <button className="btn btn-primary" onClick={copyTraining}>Kopiér til ny træning</button>
               {canEdit && (
-                <>
-                  <button className="btn btn-ghost" onClick={openEdit}>Redigér</button>
-                  <button className="btn btn-ghost" onClick={deleteTraining}>Slet</button>
-                </>
+                <button className="btn btn-ghost" onClick={openEdit}>Redigér</button>
+              )}
+              {canDelete && (
+                <button className="btn btn-ghost" onClick={deleteTraining}>Slet</button>
               )}
             </div>
           </div>
