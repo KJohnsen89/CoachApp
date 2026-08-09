@@ -2,6 +2,9 @@
 // Kaldes af Database Webhooks når der oprettes nye opslag, træninger eller forum-indhold,
 // og sender rigtige push-notifikationer (til hjemmeskærm-installerede telefoner) —
 // helt uden e-mail, domæne eller ekstern tjeneste.
+//
+// Kaldes også direkte fra appens browser ("Send test-notifikation"), derfor skal
+// CORS-headers med, ellers afviser browseren kaldet før det når frem.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3";
@@ -15,6 +18,16 @@ const APP_URL = Deno.env.get("APP_URL") ?? "";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function respond(body: string, status = 200) {
+  return new Response(body, { status, headers: corsHeaders });
+}
 
 async function sendToSubscriptions(subs: any[], title: string, body: string, url: string) {
   const payloadStr = JSON.stringify({ title, body, url });
@@ -42,6 +55,12 @@ async function sendToSubscriptions(subs: any[], title: string, body: string, url
 }
 
 Deno.serve(async (req) => {
+  // Browseren sender en OPTIONS-forespørgsel ("preflight") før selve kaldet —
+  // den skal besvares med det samme, ellers fejler kaldet fra appen.
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
     const payload = await req.json();
 
@@ -53,7 +72,7 @@ Deno.serve(async (req) => {
         .eq("user_id", payload.user_id);
       if (error) throw error;
       if (!subs || subs.length === 0) {
-        return new Response("Ingen abonnementer fundet for denne bruger", { status: 200 });
+        return respond("Ingen abonnementer fundet for denne bruger");
       }
       const sent = await sendToSubscriptions(
         subs,
@@ -61,7 +80,7 @@ Deno.serve(async (req) => {
         "Sådan! Push-notifikationer virker 🎉",
         APP_URL || "/"
       );
-      return new Response(`Test sendt til ${sent} abonnement(er)`, { status: 200 });
+      return respond(`Test sendt til ${sent} abonnement(er)`);
     }
 
     // Normalt flow: udløst af en Database Webhook ved INSERT
@@ -94,7 +113,7 @@ Deno.serve(async (req) => {
       url = `${APP_URL}/forum/${record.thread_id}`;
       authorId = record.author_id;
     } else {
-      return new Response("Ukendt tabel", { status: 200 });
+      return respond("Ukendt tabel");
     }
 
     let query = supabase.from("push_subscriptions").select("*");
@@ -102,13 +121,13 @@ Deno.serve(async (req) => {
     const { data: subs, error } = await query;
     if (error) throw error;
     if (!subs || subs.length === 0) {
-      return new Response("Ingen modtagere", { status: 200 });
+      return respond("Ingen modtagere");
     }
 
     const sent = await sendToSubscriptions(subs, title, body, url);
-    return new Response(`Sendt til ${sent} modtager(e)`, { status: 200 });
+    return respond(`Sendt til ${sent} modtager(e)`);
   } catch (e) {
     console.error(e);
-    return new Response("Fejl: " + (e as Error).message, { status: 500 });
+    return respond("Fejl: " + (e as Error).message, 500);
   }
 });
