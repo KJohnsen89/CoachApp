@@ -738,3 +738,42 @@ textarea { resize: vertical; }
 .rule-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem; }
 .rule-head h3 { margin: 0; font-family: var(--display); font-stretch: 90%; }
 .rule-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+
+/* ============================================
+   Version 10: øvelsesbank
+   ============================================ */
+
+.exercise-editor { margin-bottom: 0.5rem; }
+.bank-picker { margin-bottom: 0.75rem; }
+.exercise-editor-row { margin-bottom: 0.5rem; }
+
+.bank-save-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  background: var(--pitch-light);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  margin: 0.35rem 0 0.5rem;
+}
+.bank-save-inline select { width: auto; }
+
+.bank-categories-card { border-left: 4px solid var(--pitch); }
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: default;
+}
+.category-chip-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0;
+}
+.category-chip-remove:hover { opacity: 1; }

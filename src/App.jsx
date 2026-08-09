@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import Teams from './pages/Teams'
 import AllPlayers from './pages/AllPlayers'
 import Trainings from './pages/Trainings'
+import ExerciseBank from './pages/ExerciseBank'
 import TrainingDetail from './pages/TrainingDetail'
 import Forum from './pages/Forum'
 import Thread from './pages/Thread'
@@ -96,6 +97,7 @@ export default function App() {
           <nav className="nav">
             <NavLink to="/" end>Opslag</NavLink>
             <NavLink to="/traeninger">Træninger</NavLink>
+            <NavLink to="/ovelsesbank">Øvelsesbank</NavLink>
             <NavLink to="/hold">Hold</NavLink>
             <NavLink to="/spillere">Spillere</NavLink>
             <NavLink to="/forum">Forum</NavLink>
@@ -116,6 +118,7 @@ export default function App() {
           <Route path="/" element={<Home session={session} profile={profile} />} />
           <Route path="/traeninger" element={<Trainings session={session} />} />
           <Route path="/traeninger/:trainingId" element={<TrainingDetail session={session} profile={profile} />} />
+          <Route path="/ovelsesbank" element={<ExerciseBank session={session} />} />
           <Route path="/hold" element={<Teams session={session} />} />
           <Route path="/spillere" element={<AllPlayers />} />
           <Route path="/forum" element={<Forum session={session} />} />

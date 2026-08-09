@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import MediaFields, { uploadImages, cleanLinks } from '../components/MediaFields'
+import ExerciseEditor from '../components/ExerciseEditor'
 
 const emptyExercise = { name: '', minutes: '', description: '' }
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
@@ -106,10 +107,6 @@ export default function Trainings({ session }) {
     setExercises([{ ...emptyExercise }])
     setLinks(['']); setExistingImages([]); setNewImageFiles([])
     setIsSeries(false); setSeriesCount(4)
-  }
-
-  function updateExercise(i, field, value) {
-    setExercises(exercises.map((ex, idx) => (idx === i ? { ...ex, [field]: value } : ex)))
   }
 
   async function addTraining() {
@@ -260,33 +257,12 @@ export default function Trainings({ session }) {
           </div>
 
           <h3 className="section-title">Øvelser</h3>
-          {exercises.map((ex, i) => (
-            <div key={i} className="exercise-row">
-              <input
-                className="ex-name"
-                value={ex.name}
-                onChange={(e) => updateExercise(i, 'name', e.target.value)}
-                placeholder={`Øvelse ${i + 1} — f.eks. Firkant-leg`}
-              />
-              <input
-                className="ex-minutes"
-                type="number" min="0"
-                value={ex.minutes}
-                onChange={(e) => updateExercise(i, 'minutes', e.target.value)}
-                placeholder="Min."
-              />
-              <input
-                className="ex-desc"
-                value={ex.description}
-                onChange={(e) => updateExercise(i, 'description', e.target.value)}
-                placeholder="Kort beskrivelse (opstilling, fokuspunkter…)"
-              />
-              {exercises.length > 1 && (
-                <button className="btn btn-ghost btn-small" onClick={() => setExercises(exercises.filter((_, idx) => idx !== i))} title="Fjern øvelse">✕</button>
-              )}
-            </div>
-          ))}
-          <button className="btn btn-ghost" onClick={() => setExercises([...exercises, { ...emptyExercise }])}>+ Tilføj øvelse</button>
+          <ExerciseEditor
+            exercises={exercises}
+            setExercises={setExercises}
+            userId={session.user.id}
+            userName={authorName}
+          />
 
           <h3 className="section-title">Links & billeder</h3>
           <MediaFields
