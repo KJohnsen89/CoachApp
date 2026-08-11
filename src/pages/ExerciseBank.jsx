@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import MediaFields, { MediaView, uploadImages, cleanLinks } from '../components/MediaFields'
 
 export default function ExerciseBank({ session }) {
   const [categories, setCategories] = useState([])
@@ -13,6 +14,9 @@ export default function ExerciseBank({ session }) {
   const [categoryId, setCategoryId] = useState('')
   const [minutes, setMinutes] = useState('')
   const [description, setDescription] = useState('')
+  const [links, setLinks] = useState([''])
+  const [existingImages, setExistingImages] = useState([])
+  const [newImageFiles, setNewImageFiles] = useState([])
 
   const [newCategory, setNewCategory] = useState('')
 
@@ -31,6 +35,7 @@ export default function ExerciseBank({ session }) {
 
   function resetForm() {
     setEditingId(null); setName(''); setCategoryId(''); setMinutes(''); setDescription('')
+    setLinks(['']); setExistingImages([]); setNewImageFiles([])
   }
 
   function openEdit(ex) {
@@ -39,32 +44,39 @@ export default function ExerciseBank({ session }) {
     setCategoryId(ex.category_id || '')
     setMinutes(ex.minutes ?? '')
     setDescription(ex.description || '')
+    setLinks(ex.links?.length ? [...ex.links] : [''])
+    setExistingImages(ex.images || [])
+    setNewImageFiles([])
     setShowForm(true)
     window.scrollTo(0, 0)
   }
 
   async function saveExercise() {
     if (!name.trim()) return
-    const payload = {
-      name: name.trim(),
-      category_id: categoryId || null,
-      minutes: minutes ? Number(minutes) : null,
-      description: description.trim(),
-    }
-    let error
-    if (editingId) {
-      ;({ error } = await supabase.from('exercise_bank').update(payload).eq('id', editingId))
-    } else {
-      ;({ error } = await supabase.from('exercise_bank').insert({
-        ...payload, created_by: session.user.id, created_by_name: userName,
-      }))
-    }
-    if (error) {
-      alert('Kunne ikke gemme: ' + error.message)
-    } else {
+    try {
+      const uploadedUrls = await uploadImages(newImageFiles, session.user.id)
+      const payload = {
+        name: name.trim(),
+        category_id: categoryId || null,
+        minutes: minutes ? Number(minutes) : null,
+        description: description.trim(),
+        images: [...existingImages, ...uploadedUrls],
+        links: cleanLinks(links),
+      }
+      let error
+      if (editingId) {
+        ;({ error } = await supabase.from('exercise_bank').update(payload).eq('id', editingId))
+      } else {
+        ;({ error } = await supabase.from('exercise_bank').insert({
+          ...payload, created_by: session.user.id, created_by_name: userName,
+        }))
+      }
+      if (error) throw new Error(error.message)
       resetForm()
       setShowForm(false)
       load()
+    } catch (e) {
+      alert('Kunne ikke gemme: ' + e.message)
     }
   }
 
@@ -154,6 +166,11 @@ export default function ExerciseBank({ session }) {
             <span>Beskrivelse</span>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Opstilling, fokuspunkter…" />
           </label>
+          <MediaFields
+            links={links} setLinks={setLinks}
+            existingImages={existingImages} setExistingImages={setExistingImages}
+            newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
+          />
           <button className="btn btn-primary" onClick={saveExercise}>{editingId ? 'Gem ændringer' : 'Gem øvelse'}</button>
           {editingId && <button className="btn btn-link" onClick={() => { resetForm(); setShowForm(false) }}>Annullér</button>}
         </div>
@@ -181,6 +198,9 @@ export default function ExerciseBank({ session }) {
                 <span className="chip">{categoryName(e.category_id)}{e.minutes ? ` · ${e.minutes} min` : ''}</span>
               </div>
               {e.description && <p className="post-body">{e.description}</p>}
+              {(e.images?.length > 0 || e.links?.length > 0) && (
+                <MediaView images={e.images} links={e.links} />
+              )}
               <div className="rule-actions">
                 <button className="btn btn-ghost btn-small" onClick={() => openEdit(e)}>Redigér</button>
                 <button className="btn btn-ghost btn-small" onClick={() => deleteExercise(e.id)}>Slet</button>

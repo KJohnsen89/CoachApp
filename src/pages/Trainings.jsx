@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
-import MediaFields, { uploadImages, cleanLinks } from '../components/MediaFields'
 import ExerciseEditor from '../components/ExerciseEditor'
 
-const emptyExercise = { name: '', minutes: '', description: '' }
+const emptyExercise = { name: '', minutes: '', description: '', images: [], links: [] }
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
 const WEEKDAYS = [
@@ -46,9 +45,6 @@ export default function Trainings({ session }) {
   const [place, setPlace] = useState('')
   const [theme, setTheme] = useState('')
   const [exercises, setExercises] = useState([{ ...emptyExercise }])
-  const [links, setLinks] = useState([''])
-  const [existingImages, setExistingImages] = useState([])
-  const [newImageFiles, setNewImageFiles] = useState([])
 
   // serie
   const [isSeries, setIsSeries] = useState(false)
@@ -86,11 +82,9 @@ export default function Trainings({ session }) {
     setPlace(t.place || '')
     setTheme(t.theme || '')
     setExercises(t.exercises?.length ? t.exercises.map(ex => ({
-      name: ex.name || '', minutes: ex.minutes ?? '', description: ex.description || ''
+      name: ex.name || '', minutes: ex.minutes ?? '', description: ex.description || '',
+      images: ex.images || [], links: ex.links || [],
     })) : [{ ...emptyExercise }])
-    setLinks(t.links?.length ? [...t.links] : [''])
-    setExistingImages(t.images || [])
-    setNewImageFiles([])
     setIsSeries(false)
     setSeriesCount(4)
   }
@@ -105,7 +99,6 @@ export default function Trainings({ session }) {
     setTeamName(''); setDate(''); setHour(''); setMinute('00')
     setPlace(''); setTheme('')
     setExercises([{ ...emptyExercise }])
-    setLinks(['']); setExistingImages([]); setNewImageFiles([])
     setIsSeries(false); setSeriesCount(4)
   }
 
@@ -126,10 +119,10 @@ export default function Trainings({ session }) {
           name: String(ex.name).trim(),
           minutes: ex.minutes ? Number(ex.minutes) : null,
           description: String(ex.description).trim(),
+          images: ex.images || [],
+          links: ex.links || [],
         }))
 
-      const uploadedUrls = await uploadImages(newImageFiles, session.user.id)
-      const allImages = [...existingImages, ...uploadedUrls]
       const time = hour !== '' ? `${hour}:${minute}` : null
 
       const dates = isSeries ? buildSeriesDates(date, Number(seriesCount)) : [date]
@@ -142,8 +135,6 @@ export default function Trainings({ session }) {
         place: place.trim(),
         theme: theme.trim(),
         exercises: cleanExercises,
-        links: cleanLinks(links),
-        images: allImages,
         series_id: seriesId,
         created_by: session.user.id,
         created_by_name: authorName,
@@ -263,13 +254,7 @@ export default function Trainings({ session }) {
             userId={session.user.id}
             userName={authorName}
           />
-
-          <h3 className="section-title">Links & billeder</h3>
-          <MediaFields
-            links={links} setLinks={setLinks}
-            existingImages={existingImages} setExistingImages={setExistingImages}
-            newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
-          />
+          <p className="muted">Tip: brug 📎-knappen på hver øvelse til at tilføje billeder eller links til lige netop den øvelse.</p>
 
           <div className="form-actions">
             <button className="btn btn-primary" onClick={addTraining} disabled={saving}>

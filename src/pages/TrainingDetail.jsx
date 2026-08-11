@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
-import MediaFields, { MediaView, uploadImages, cleanLinks } from '../components/MediaFields'
+import { MediaView } from '../components/MediaFields'
 import ExerciseEditor from '../components/ExerciseEditor'
 
-const emptyExercise = { name: '', minutes: '', description: '' }
+const emptyExercise = { name: '', minutes: '', description: '', images: [], links: [] }
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
 const MINUTES = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
 
@@ -28,9 +28,6 @@ export default function TrainingDetail({ session, profile }) {
   const [place, setPlace] = useState('')
   const [theme, setTheme] = useState('')
   const [exercises, setExercises] = useState([{ ...emptyExercise }])
-  const [links, setLinks] = useState([''])
-  const [existingImages, setExistingImages] = useState([])
-  const [newImageFiles, setNewImageFiles] = useState([])
   const [seriesCount, setSeriesCount] = useState(1)
 
   async function load() {
@@ -82,11 +79,9 @@ export default function TrainingDetail({ session, profile }) {
     setPlace(training.place || '')
     setTheme(training.theme || '')
     setExercises(training.exercises?.length ? training.exercises.map(ex => ({
-      name: ex.name || '', minutes: ex.minutes ?? '', description: ex.description || ''
+      name: ex.name || '', minutes: ex.minutes ?? '', description: ex.description || '',
+      images: ex.images || [], links: ex.links || [],
     })) : [{ ...emptyExercise }])
-    setLinks(training.links?.length ? [...training.links] : [''])
-    setExistingImages(training.images || [])
-    setNewImageFiles([])
     setSeriesCount(1)
     if (training.series_id) {
       supabase.from('trainings').select('id', { count: 'exact', head: true }).eq('series_id', training.series_id)
@@ -109,9 +104,9 @@ export default function TrainingDetail({ session, profile }) {
           name: String(ex.name).trim(),
           minutes: ex.minutes ? Number(ex.minutes) : null,
           description: String(ex.description).trim(),
+          images: ex.images || [],
+          links: ex.links || [],
         }))
-      const uploadedUrls = await uploadImages(newImageFiles, session.user.id)
-      const allImages = [...existingImages, ...uploadedUrls]
       const time = hour !== '' ? `${hour}:${minute}` : null
 
       const sharedFields = {
@@ -120,8 +115,6 @@ export default function TrainingDetail({ session, profile }) {
         place: place.trim(),
         theme: theme.trim(),
         exercises: cleanExercises,
-        links: cleanLinks(links),
-        images: allImages,
       }
 
       if (scope === 'series' && training.series_id) {
@@ -205,13 +198,7 @@ export default function TrainingDetail({ session, profile }) {
             userId={session.user.id}
             userName={myName}
           />
-
-          <h3 className="section-title">Links & billeder</h3>
-          <MediaFields
-            links={links} setLinks={setLinks}
-            existingImages={existingImages} setExistingImages={setExistingImages}
-            newImageFiles={newImageFiles} setNewImageFiles={setNewImageFiles}
-          />
+          <p className="muted">Tip: brug 📎-knappen på hver øvelse til at tilføje billeder eller links til lige netop den øvelse.</p>
 
           {training.series_id ? (
             <div className="scope-choice">
@@ -282,6 +269,9 @@ export default function TrainingDetail({ session, profile }) {
                       {ex.minutes && <span className="chip chip-small">{ex.minutes} min</span>}
                     </div>
                     {ex.description && <p className="muted">{ex.description}</p>}
+                    {(ex.images?.length > 0 || ex.links?.length > 0) && (
+                      <MediaView images={ex.images} links={ex.links} />
+                    )}
                   </div>
                 ))}
               </div>
