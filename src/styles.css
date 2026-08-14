@@ -799,3 +799,25 @@ textarea { resize: vertical; }
 }
 .exercise-media-inline .detail-links { margin: 0; padding-left: 1.1rem; }
 .exercise-media-inline .image-strip { margin-bottom: 0; }
+
+/* ============================================
+   Version 12: kommentarer på opslag (Forum fjernet)
+   ============================================ */
+
+.post-link { display: block; text-decoration: none; color: inherit; }
+.post-comments-preview { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--line); }
+.comment-preview {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  margin: 0 0 0.3rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.comment-preview strong { color: var(--ink); }
+.comment-count-link {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--pitch-dark);
+}
+.post-link:hover .comment-count-link { text-decoration: underline; }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import MediaFields, { MediaView, uploadImages, cleanLinks } from '../components/MediaFields'
 
@@ -17,7 +18,7 @@ export default function Home({ session, profile }) {
   async function load() {
     const { data } = await supabase
       .from('posts')
-      .select('*, post_views(user_id, user_name)')
+      .select('*, post_views(user_id, user_name), post_comments(id, body, author_name, created_at)')
       .order('created_at', { ascending: false })
       .limit(30)
     setPosts(data || [])
@@ -54,7 +55,7 @@ export default function Home({ session, profile }) {
   }
 
   async function deletePost(id) {
-    if (!confirm('Slet dette opslag?')) return
+    if (!confirm('Slet dette opslag og alle kommentarer til det?')) return
     await supabase.from('posts').delete().eq('id', id)
     load()
   }
@@ -92,17 +93,35 @@ export default function Home({ session, profile }) {
         <ul className="post-list">
           {posts.map((p) => {
             const viewers = (p.post_views || []).filter((v) => v.user_id !== p.author_id)
+            const comments = [...(p.post_comments || [])].sort(
+              (a, b) => new Date(a.created_at) - new Date(b.created_at)
+            )
+            const lastComment = comments[comments.length - 1]
             return (
               <li key={p.id} className="card post">
-                <div className="post-head">
-                  <strong>{p.author_name}</strong>
-                  <span className="muted">{new Date(p.created_at).toLocaleString('da-DK', { dateStyle: 'medium', timeStyle: 'short' })}</span>
-                </div>
-                {p.body && <p className="post-body">{p.body}</p>}
-                <MediaView images={p.images} links={p.links} />
-                {viewers.length > 0 && (
-                  <p className="muted view-list">👀 Set af: {viewers.map((v) => v.user_name).join(', ')}</p>
-                )}
+                <Link to={`/opslag/${p.id}`} className="post-link">
+                  <div className="post-head">
+                    <strong>{p.author_name}</strong>
+                    <span className="muted">{new Date(p.created_at).toLocaleString('da-DK', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                  </div>
+                  {p.body && <p className="post-body">{p.body}</p>}
+                  <MediaView images={p.images} links={p.links} />
+                  {viewers.length > 0 && (
+                    <p className="muted view-list">👀 Set af: {viewers.map((v) => v.user_name).join(', ')}</p>
+                  )}
+                  <div className="post-comments-preview">
+                    {lastComment && (
+                      <p className="comment-preview">
+                        <strong>{lastComment.author_name}:</strong> {lastComment.body}
+                      </p>
+                    )}
+                    <span className="comment-count-link">
+                      {comments.length === 0
+                        ? 'Skriv en kommentar'
+                        : `Se ${comments.length === 1 ? 'kommentaren' : `alle ${comments.length} kommentarer`}`}
+                    </span>
+                  </div>
+                </Link>
                 {(p.author_id === session.user.id || profile?.is_admin) && (
                   <button className="btn btn-ghost btn-small" onClick={() => deletePost(p.id)}>Slet</button>
                 )}

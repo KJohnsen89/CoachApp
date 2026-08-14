@@ -102,15 +102,10 @@ Deno.serve(async (req) => {
       body = record.theme || `Træning den ${record.date}`;
       url = `${APP_URL}/traeninger/${record.id}`;
       authorId = record.created_by;
-    } else if (table === "forum_threads") {
-      title = `Ny diskussion: ${record.title}`;
+    } else if (table === "post_comments") {
+      title = `Ny kommentar fra ${record.author_name}`;
       body = (record.body || "").slice(0, 140);
-      url = `${APP_URL}/forum/${record.id}`;
-      authorId = record.author_id;
-    } else if (table === "forum_replies") {
-      title = `Nyt svar fra ${record.author_name}`;
-      body = (record.body || "").slice(0, 140);
-      url = `${APP_URL}/forum/${record.thread_id}`;
+      url = `${APP_URL}/opslag/${record.post_id}`;
       authorId = record.author_id;
     } else {
       return respond("Ukendt tabel");
